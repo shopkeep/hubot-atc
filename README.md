@@ -1,6 +1,12 @@
-# Hubot Example
+# Hubot ATC
 
-An example script package for Hubot
+Hubot plugin to manage environment reservations ( for now )
+
+## Usage
+
+Include it in your hubot's package.json as a dependency, and it's hubot-scripts.json file.
+
+## Development
 
 [![Build Status](https://travis-ci.org/hubot-scripts/hubot-example.png)](https://travis-ci.org/hubot-scripts/hubot-example)
 

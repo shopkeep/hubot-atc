@@ -1,5 +1,5 @@
 # Description:
-#   Say Hi to Hubot.
+#   Manage environments with Hubot
 #
 # Dependencies:
 #   None
@@ -8,15 +8,20 @@
 #   None
 #
 # Commands:
-#   hubot hello - "hello!"
-#   hubot orly - "yarly"
+#   hubot stagehand - "hodor!"
+#   hubot message - "message!"
 #
 # Author:
-#   tombell
+#   akatz
 
 module.exports = (robot) ->
-  robot.respond /hello/, (msg) ->
-    msg.reply "hello!"
+  robot.brain.on 'loaded', ->
+      robot.brain.data.stagehand ?= {}
 
-  robot.hear /orly/, ->
-    msg.send "yarly"
+      robot.brain.data.stagehand['production'] = {}
+
+  robot.respond /stagehand/, (msg) ->
+    msg.reply "hodor!"
+
+  robot.hear /message/, ->
+    msg.send "message!"
