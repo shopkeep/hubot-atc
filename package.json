@@ -1,37 +1,32 @@
 {
-  "name": "hubot-example",
-  "description": "An example script package for Hubot",
+  "name": "hubot-atc",
+  "description": "An air traffic controller that powers your releases",
   "version": "1.0.0",
-  "author": "Tom Bell <tomb@tomb.io>",
+  "author": "ShopKeep<developers@shopkeep.com>",
   "license": "MIT",
-
   "keywords": [
     "hubot",
     "hubot-scripts"
   ],
-
   "repository": {
     "type": "git",
-    "url": "git://github.com/hubot-scripts/hubot-example.git"
+    "url": "git://github.com/shopkeep/hubot-atc.git"
   },
-
   "bugs": {
-    "url": "https://github.com/hubot-scripts/hubot-example/issues"
+    "url": "https://github.com/shopkeep/hubot-atc/issues"
   },
-
   "dependencies": {
     "coffee-script": "~1.6"
   },
-
   "devDependencies": {
-    "mocha": "*",
     "chai": "*",
+    "hubot-test-helper": "akatz/hubot-test-helper",
+    "mocha": "*",
+    "sinon": "*",
     "sinon-chai": "*",
-    "sinon": "*"
+    "supervisor": "*"
   },
-
   "main": "index.coffee",
-
   "scripts": {
     "test": "script/test"
   }

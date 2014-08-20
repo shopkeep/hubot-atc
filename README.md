@@ -1,35 +1,40 @@
-# Hubot Example
+# Hubot ATC
 
-An example script package for Hubot
+[![Build Status](https://magnum.travis-ci.com/shopkeep/hubot-atc.svg?token=k5XqB7xVsuXDBZsrELpB&branch=master)](https://magnum.travis-ci.com/shopkeep/hubot-atc)
 
-[![Build Status](https://travis-ci.org/hubot-scripts/hubot-example.png)](https://travis-ci.org/hubot-scripts/hubot-example)
+## Usage
 
-## Directory Structure
+Include it in your hubot's package.json as a dependency, and it's external-scripts.json file.
 
-Using the common directory structure for hubot script packages it will be easy
-to manage and allow others to easily contribute to your package.
+### Managing your applications and environments
 
-### script
+This section provides an example walkthrough of registering an application, adding environments for that application, and releasing a version of the application.
 
-This directory is home to a couple of development scripts; `bootstrap` and `test`
-they're used to bootstrap the development environment and run tests
-respectively.
+```
+# Add an application
+hubot atc add application foobar
+#=> application foobar was added
 
-### src
 
-This directory is home to the actual hubot scripts in the package. Your
-`index.coffee` entry point will load the scripts from this directory.
+# Add some environments to that application
+hubot atc add environment staging to foobar
+#=> environment staging added to foobar
 
-### test
+hubot atc add environment production to foobar
+#=> environment production added to foobar
 
-This directory is home to any tests you write for your scripts. This example
-package uses Mocha, Chai and Sinon to manage writing tests.
 
-## Advantages of Building a Package
+# Ask if you can release that application to that environment
+hubot can I release foobar to staging?
+#=> yes, foobar is releasable to staging
 
-Some of the advantages of building an npm package for your hubot script(s) are:
 
-* You don't need to rely on when hubot-scripts package is released.
-* You can specify dependencies in the `package.json` rather than have users
-  manually specify them
-* You can easily add tests using your favourite frameworks and libraries
+# Release foobar/master to staging
+hubot atc release foobar/master to staging
+#=> user is now releasing hubot\/master to staging
+
+
+# Let other people release
+hubot atc done releasing foobar to staging
+#=>foobar staging is now free for releases
+```
