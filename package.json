@@ -28,12 +28,14 @@
     "chai": "*",
     "sinon-chai": "*",
     "sinon": "*",
-    "hubot-test-helper": "akatz/hubot-test-helper"
+    "hubot-test-helper": "akatz/hubot-test-helper",
+    "supervisor": "*"
   },
 
   "main": "index.coffee",
 
   "scripts": {
-    "test": "script/test"
+    "test": "script/test",
+    "autotest": "mocha --watch --reporter spec tests/**/*-test.js"
   }
 }
