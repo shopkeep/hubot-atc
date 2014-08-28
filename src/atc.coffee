@@ -22,6 +22,7 @@ module.exports = (robot) ->
 
   robot.respond /where can I deploy/i, (msg) ->
     msg.reply 'Environments you can deploy to:'
+
     for env in availableEnvironments()
       msg.send env
 
@@ -29,6 +30,7 @@ module.exports = (robot) ->
   robot.respond /atc who booked (\w+)/i, (msg) ->
     env_name = msg.match[1]
     env = extract_env(env_name)
+
     msg.reply "#{env_name} is free for use"  if moment() >= moment(env.expires)
 
   robot.respond /atc register (\w+)/i, (msg) ->
@@ -41,9 +43,10 @@ module.exports = (robot) ->
   robot.respond /atc book (\w+)/i, (msg) ->
     env_name = msg.match[1]
     env = extract_env(env_name)
-    set_env(env_name, { user: user_for_message(msg), expires: moment().add('minutes', 30).format() })
+    set_env(env_name, { user: user_for_message(msg), expires: moment().add(30, 'minutes').format() })
 
     msg.reply "Environment #{env_name} successfully booked by #{user_for_message(msg)}"
+
 
   extract_env = (env) ->
     robot.brain.data.stagehand[env]
