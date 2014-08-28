@@ -12,7 +12,6 @@
 
   "repository": {
     "type": "git",
-
     "url": "git://github.com/hubot-scripts/hubot-atc.git"
   },
 
@@ -28,8 +27,8 @@
     "mocha": "*",
     "chai": "*",
     "sinon-chai": "*",
-    "sinon": "*"
-    "hubot-test-helper": "*"
+    "sinon": "*",
+    "hubot-test-helper": "akatz/hubot-test-helper"
   },
 
   "main": "index.coffee",
