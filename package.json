@@ -12,27 +12,31 @@
 
   "repository": {
     "type": "git",
-    "url": "git://github.com/akatz/hubot-stagehand.git"
+    "url": "git://github.com/hubot-scripts/hubot-atc.git"
   },
 
   "bugs": {
-    "url": "https://github.com/akatz/hubot-stagehand/issues"
+    "url": "https://github.com/hubot-scripts/hubot-atc/issues"
   },
 
   "dependencies": {
-    "coffee-script": "~1.6"
+    "coffee-script": "~1.6",
+    "moment": "*"
   },
 
   "devDependencies": {
     "mocha": "*",
     "chai": "*",
     "sinon-chai": "*",
-    "sinon": "*"
+    "sinon": "*",
+    "hubot-test-helper": "akatz/hubot-test-helper",
+    "supervisor": "*"
   },
 
   "main": "index.coffee",
 
   "scripts": {
-    "test": "script/test"
+    "test": "script/test",
+    "autotest": "mocha --compilers coffee:coffee-script --watch --reporter spec test/**/*_test.coffee"
   }
 }
