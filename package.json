@@ -1,42 +1,33 @@
 {
-  "name": "hubot-stagehand",
-  "description": "A plugin for managing environment registration",
+  "name": "hubot-atc",
+  "description": "An air traffic controller that powers your releases",
   "version": "1.0.0",
-  "author": "Avrohom Katz<avrohom@shopkeep.com>",
+  "author": "ShopKeep<developers@shopkeep.com>",
   "license": "MIT",
-
   "keywords": [
     "hubot",
     "hubot-scripts"
   ],
-
   "repository": {
     "type": "git",
-    "url": "git://github.com/hubot-scripts/hubot-atc.git"
+    "url": "git://github.com/shopkeep/hubot-atc.git"
   },
-
   "bugs": {
-    "url": "https://github.com/hubot-scripts/hubot-atc/issues"
+    "url": "https://github.com/shopkeep/hubot-atc/issues"
   },
-
   "dependencies": {
-    "coffee-script": "~1.6",
-    "moment": "*"
+    "coffee-script": "~1.6"
   },
-
   "devDependencies": {
-    "mocha": "*",
     "chai": "*",
-    "sinon-chai": "*",
-    "sinon": "*",
     "hubot-test-helper": "akatz/hubot-test-helper",
+    "mocha": "*",
+    "sinon": "*",
+    "sinon-chai": "*",
     "supervisor": "*"
   },
-
   "main": "index.coffee",
-
   "scripts": {
-    "test": "script/test",
-    "autotest": "mocha --compilers coffee:coffee-script --watch --reporter spec test/**/*_test.coffee"
+    "test": "script/test"
   }
 }

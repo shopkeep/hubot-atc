@@ -3,61 +3,253 @@ chai = require 'chai'
 sinon = require 'sinon'
 chai.use require 'sinon-chai'
 
-Path   = require("path")
 Helper = require('hubot-test-helper')
-
-room   = null
-helper = new Helper(Path.join(__dirname, "..", "src", "atc.coffee"))
+helper = new Helper('../src')
 
 expect = chai.expect
 assert = chai.assert
 
-describe 'hello-world', ->
+describe 'hubot-atc', ->
+  room = null
+
   beforeEach ->
     room = helper.createRoom()
 
-  it "displays deployment environment help", ->
-    room.user.say "akatz", "hubot where can i deploy"
-    result = room.messages[1][1]
-    expect(result).to.match /Environments you can deploy to/i
+  lastMessage = (room) ->
+    lastMessageIndex = room.messages.length - 1
+    room.messages[lastMessageIndex][1]
 
-  context "registering an env", ->
-    it "allows you to register a new env", ->
-      room.user.say "akatz", "hubot atc register Production"
-      result = room.messages[1][1]
-      expect(result).to.match /Environment Production registered./i
+  describe "applications", ->
+    describe "adding", ->
+      context "when there are none", ->
+        it 'adds the application', ->
+          room.user.say "duncan", "hubot atc add application foo"
+          expect(room.robot.brain.data.applications).to.include "foo"
 
-    it "saves the env in redis", ->
-      room.user.say "akatz", "hubot atc register Production"
-      expect(Object.keys(room.robot.brain.data.stagehand)).to.include "Production"
+        it 'responds with the proper message', ->
+          room.user.say "duncan", "hubot atc add application foo"
+          expect(lastMessage(room)).to.match /application foo was added/
 
-    it "is initially unbooked", ->
-      room.user.say "akatz", "hubot atc register Production"
-      room.user.say "akatz", "hubot atc who booked Production"
-      expect(room.messages[3][1]).to.match /Production is free for use/i
+      context "when there are already apps", ->
+        beforeEach ->
+          room.user.say "duncan", "hubot atc add application foo"
+          room.user.say "duncan", "hubot atc add application foo"
 
+        it 'only adds the application once', ->
+          expect(room.robot.brain.data.applications).eql ["foo"]
 
-  context "with a list of environments", ->
-    beforeEach ->
-      room.user.say "akatz", "hubot atc register Production"
-      room.user.say "akatz", "hubot atc register Staging"
+        it 'responds with the proper error message', ->
+          expect(lastMessage(room)).to.match /application foo already exists/
 
-    it "returns the list", ->
-      room.user.say "akatz", "hubot where can i deploy"
-      result = room.messages
-      expect(result[5][1]).to.match /Environments you can deploy to/i
-      expect(result[6][1]).to.match /Production/i
-      expect(result[7][1]).to.match /Staging/i
-      expect(result[8]).to.be.undefined
+        it 'adds the new app and responds with the proper message', ->
+          room.user.say "duncan", "hubot atc add application bar"
+          expect(lastMessage(room)).to.match /application bar was added/
 
-    context "when one is booked", ->
+        it 'adds the new app', ->
+          room.user.say "duncan", "hubot atc add application bar"
+          expect(room.robot.brain.data.applications).to.eql ["foo", "bar"]
+
+    describe "removing", ->
+      context "when there are apps", ->
+        beforeEach ->
+          room.user.say "duncan", "hubot atc add application foo"
+
+        it "removes the app", ->
+          room.user.say "duncan", "hubot atc remove application foo"
+          expect(room.robot.brain.data.applications).eql []
+
+        it "respnds with the proper message", ->
+          room.user.say "duncan", "hubot atc remove application foo"
+          expect(lastMessage(room)).to.match /application foo was removed/
+
+      context "when the app doesn't exist", ->
+        it "responds with the proper message", ->
+          room.user.say "duncan", "hubot atc remove application foo"
+          expect(lastMessage(room)).to.match /application foo doesn't exist/
+
+    describe "environments", ->
+      describe "adding", ->
+        context "for an unknown application", ->
+          it "responds with the error message", ->
+            room.user.say "duncan", "hubot atc add environment staging to foo"
+            expect(lastMessage(room)).to.match /application foo doesn't exist/
+
+        context "for an existing application", ->
+          context "and no environments exist", ->
+            beforeEach ->
+              room.user.say "duncan", "hubot atc add application foo"
+
+            it "responds with the correct message", ->
+              room.user.say "duncan", "hubot atc add environment staging to foo"
+              expect(lastMessage(room)).to.match /environment staging added to foo/
+
+            it "creates the environment for the application", ->
+              room.user.say "duncan", "hubot atc add environment staging to foo"
+              expect(room.robot.brain.data.environments["foo"]).to.eql ["staging"]
+
+          context "and it has environments", ->
+            beforeEach ->
+              room.user.say "duncan", "hubot atc add application foo"
+              room.user.say "duncan", "hubot atc add environment staging to foo"
+
+            context "and the environment is new", ->
+              it "responds with the correct message", ->
+                room.user.say "duncan", "hubot atc add environment production to foo"
+                expect(lastMessage(room)).to.match /environment production added to foo/
+
+              it "is added", ->
+                room.user.say "duncan", "hubot atc add environment production to foo"
+                expect(room.robot.brain.data.environments["foo"]).to.eql ["staging", "production"]
+
+            context "and the environment exists", ->
+              beforeEach ->
+                room.user.say "duncan", "hubot atc add environment production to foo"
+
+              it "is a no op", ->
+                room.user.say "duncan", "hubot atc add environment production to foo"
+                expect(room.robot.brain.data.environments["foo"]).to.eql ["staging", "production"]
+
+              it "responds with the proper message", ->
+                room.user.say "duncan", "hubot atc add environment production to foo"
+                expect(lastMessage(room)).to.match /environment production already exists for foo/
+
+      describe "removing", ->
+        context "for an unknown app", ->
+          it "returns the proper error message", ->
+            room.user.say "duncan", "hubot atc remove environment production from foo"
+            expect(lastMessage(room)).to.match /environment production doesn't exist for foo/
+
+        context "for a known application", ->
+          beforeEach ->
+            room.user.say "duncan", "hubot atc add application foo"
+
+          context "an unknown environment", ->
+            it 'returns the proper error message', ->
+              room.user.say "duncan", "hubot atc remove environment production from foo"
+              expect(lastMessage(room)).to.match /environment production doesn't exist for foo/
+
+          context "a known environment", ->
+            beforeEach ->
+              room.user.say "duncan", "hubot atc add environment production to foo"
+
+            it 'removes the environment', ->
+              room.user.say "duncan", "hubot atc remove environment production from foo"
+              expect(room.robot.brain.data.environments["foo"]).to.eql []
+
+            it 'returns the proper message', ->
+              room.user.say "duncan", "hubot atc remove environment production from foo"
+              expect(lastMessage(room)).to.match /environment production removed from foo/
+
+  describe "release", ->
+    context "with an app", ->
+      context "and an environment", ->
+        beforeEach ->
+          room.user.say "duncan", "hubot atc add application hubot"
+          room.user.say "duncan", "hubot atc add environment staging to hubot"
+
+        context "when there is no lock", ->
+          context 'allows you to release', ->
+            it 'defaults to master', ->
+              room.user.say "akatz", "hubot atc release hubot to staging"
+              expect(lastMessage(room)).to.match /^akatz is now releasing hubot\/master to staging/
+
+            it 'allows you to choose a branch', ->
+              room.user.say "akatz", "hubot atc release hubot/test-this to staging"
+              expect(lastMessage(room)).to.match /^akatz is now releasing hubot\/test-this to staging/
+
+            it 'allows you to choose a commit', ->
+              room.user.say "akatz", "hubot atc release hubot/1f1920a007f to staging"
+              expect(lastMessage(room)).to.match /^akatz is now releasing hubot\/1f1920a007f to staging/
+
+        context "when there is a lock", ->
+          beforeEach ->
+            room.user.say "akatz", "hubot atc release hubot to staging"
+
+          it "tells you no", ->
+            room.user.say "duncan", "hubot atc release hubot to staging"
+            expect(lastMessage(room)).to.match /sorry, @akatz is releasing hubot\/master to staging/
+
+      context "without an environment", ->
+        beforeEach ->
+          room.user.say "duncan", "hubot atc add application hubot"
+
+        it 'tells you to do a better job', ->
+          room.user.say "duncan", "hubot atc release hubot to staging"
+          expect(lastMessage(room)).to.match /environment staging doesn't exist for hubot/
+
+    context "without an app", ->
+      it 'tells you to do a better job', ->
+        room.user.say "duncan", "hubot atc release hubot to staging"
+        expect(lastMessage(room)).to.match /application hubot doesn't exist/
+
+  describe "release", ->
+    context "with an app", ->
+      context "and an environment", ->
+        beforeEach ->
+          room.user.say "duncan", "hubot atc add application hubot"
+          room.user.say "duncan", "hubot atc add environment staging to hubot"
+
+        context "when there is a lock", ->
+          context 'and you are the releaser', ->
+            beforeEach ->
+              room.user.say "duncan", "hubot atc release hubot to staging"
+
+            it 'allows you to release the lock', ->
+              room.user.say "duncan", "hubot atc done releasing hubot to staging"
+              expect(lastMessage(room)).to.match /hubot staging is free for releases/
+
+            it 'allows another person to release when the lock is freed', ->
+              room.user.say "duncan", "hubot atc done releasing hubot to staging"
+              room.user.say "akatz", "hubot atc release hubot to staging"
+
+              expect(lastMessage(room)).to.match /akatz is now releasing hubot\/master to staging/
+
+          context 'and you are not the releaser', ->
+            beforeEach ->
+              room.user.say "duncan", "hubot atc release hubot to staging"
+
+            it 'allows you to release the lock', ->
+              room.user.say "akatz", "hubot atc done releasing hubot to staging"
+              expect(lastMessage(room)).to.match /sorry, duncan is currently releasing hubot\/master to staging/
+
+      context "without an environment", ->
+        beforeEach ->
+          room.user.say "duncan", "hubot atc add application hubot"
+
+        it 'tells you to do a better job', ->
+          room.user.say "duncan", "hubot atc done releasing hubot to staging"
+          expect(lastMessage(room)).to.match /environment staging doesn't exist for hubot/
+
+    context "without an app", ->
+      it 'tells you to do a better job', ->
+        room.user.say "duncan", "hubot atc done releasing hubot to staging"
+        expect(lastMessage(room)).to.match /application hubot doesn't exist/
+
+  describe "can I release?", ->
+    context "with an app", ->
       beforeEach ->
-        room.user.say "akatz", "hubot atc register Production"
-        room.user.say "akatz", "hubot atc book Production"
+        room.user.say "duncan", "hubot atc add application hubot"
+      context "and an environment", ->
+        beforeEach ->
+          room.user.say "duncan", "hubot atc add environment staging to hubot"
+        context "that is unlocked", ->
+          it "tells you yes", ->
+            room.user.say "duncan", "can I release hubot to staging?"
+            expect(lastMessage(room)).to.match /yes, hubot is releasable to staging/
+        context "that is locked", ->
+          beforeEach ->
+            room.user.say "duncan", "hubot atc release hubot to staging"
 
-      it "excludes that env from the list", ->
-        room.user.say "akatz", "hubot where can i deploy"
-        result = room.messages
-        expect(result[9][1]).to.match /Environments you can deploy to/i
-        expect(result[10][1]).to.match /Staging/i
-        expect(result[11]).to.be.undefined
+          it "tells you no", ->
+            room.user.say "akatz", "can I release hubot to staging"
+            expect(lastMessage(room)).to.match /sorry, @duncan is releasing hubot\/master to staging/
+
+      context "without an environment", ->
+        it 'tells you to do a better job', ->
+          room.user.say "akatz", "can I release hubot to staging"
+          expect(lastMessage(room)).to.match /environment staging doesn't exist for hubot/
+
+    context "without an app", ->
+      it 'tells you to do a better job', ->
+        room.user.say "akatz", "can I release hubot to staging"
+        expect(lastMessage(room)).to.match /application hubot doesn't exist/

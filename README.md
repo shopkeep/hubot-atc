@@ -1,41 +1,40 @@
 # Hubot ATC
 
-Hubot plugin to manage environment reservations ( for now )
+[![Build Status](https://magnum.travis-ci.com/shopkeep/hubot-atc.svg?token=k5XqB7xVsuXDBZsrELpB&branch=master)](https://magnum.travis-ci.com/shopkeep/hubot-atc)
 
 ## Usage
 
-Include it in your hubot's package.json as a dependency, and it's hubot-scripts.json file.
+Include it in your hubot's package.json as a dependency, and it's external-scripts.json file.
 
-## Development
+### Managing your applications and environments
 
-[![Build Status](https://travis-ci.org/hubot-scripts/hubot-example.png)](https://travis-ci.org/hubot-scripts/hubot-example)
+This section provides an example walkthrough of registering an application, adding environments for that application, and releasing a version of the application.
 
-## Directory Structure
+```
+# Add an application
+hubot atc add application foobar
+#=> application foobar was added
 
-Using the common directory structure for hubot script packages it will be easy
-to manage and allow others to easily contribute to your package.
 
-### script
+# Add some environments to that application
+hubot atc add environment staging to foobar
+#=> environment staging added to foobar
 
-This directory is home to a couple of development scripts; `bootstrap` and `test`
-they're used to bootstrap the development environment and run tests
-respectively.
+hubot atc add environment production to foobar
+#=> environment production added to foobar
 
-### src
 
-This directory is home to the actual hubot scripts in the package. Your
-`index.coffee` entry point will load the scripts from this directory.
+# Ask if you can release that application to that environment
+hubot can I release foobar to staging?
+#=> yes, foobar is releasable to staging
 
-### test
 
-This directory is home to any tests you write for your scripts. This example
-package uses Mocha, Chai and Sinon to manage writing tests.
+# Release foobar/master to staging
+hubot atc release foobar/master to staging
+#=> user is now releasing hubot\/master to staging
 
-## Advantages of Building a Package
 
-Some of the advantages of building an npm package for your hubot script(s) are:
-
-* You don't need to rely on when hubot-scripts package is released.
-* You can specify dependencies in the `package.json` rather than have users
-  manually specify them
-* You can easily add tests using your favourite frameworks and libraries
+# Let other people release
+hubot atc done releasing foobar to staging
+#=>foobar staging is now free for releases
+```
