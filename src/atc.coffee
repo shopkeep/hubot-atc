@@ -1,18 +1,15 @@
 # Description:
-#   Say Hi to Hubot.
+#   Manage environment reservations
 #
 # Dependencies:
-#   None
+#   momentJS
 #
 # Configuration:
 #   None
 #
 # Commands:
-#   hubot hello - "hello!"
-#   hubot orly - "yarly"
-#
-# Author:
-#   tombell
+#   hubot atc who booked
+#   hubot where can I deploy
 
 moment = require('moment')
 
