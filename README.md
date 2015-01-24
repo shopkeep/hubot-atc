@@ -12,15 +12,15 @@ This section provides an example walkthrough of registering an application, addi
 
 ```
 # Add an application
-hubot atc add application foobar
+hubot application add foobar
 #=> application foobar was added
 
 
 # Add some environments to that application
-hubot atc add environment staging to foobar
+hubot environment add staging to foobar
 #=> environment staging added to foobar
 
-hubot atc add environment production to foobar
+hubot environment add production to foobar
 #=> environment production added to foobar
 
 
@@ -30,11 +30,11 @@ hubot can I release foobar to staging?
 
 
 # Release foobar/master to staging
-hubot atc release foobar/master to staging
+hubot release foobar/master to staging
 #=> user is now releasing hubot\/master to staging
 
 
 # Let other people release
-hubot atc done releasing foobar to staging
+hubot done releasing foobar to staging
 #=>foobar staging is now free for releases
 ```

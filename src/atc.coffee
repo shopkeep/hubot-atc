@@ -5,10 +5,10 @@
 #   None
 #
 # Commands:
-#   hubot add application hubot
-#   hubot remove application hubot
-#   hubot add environment staging to hubot
-#   hubot remove environment staging to hubot
+#   hubot application add hubot
+#   hubot application remove hubot
+#   hubot environment add staging to hubot
+#   hubot environment remove staging to hubot
 #   hubot release hubot to staging
 #   can I release hubot to staging?
 
@@ -21,7 +21,7 @@ module.exports = (robot) ->
     robot.brain.data.environments ||= {}
     robot.brain.data.locks ||= {}
 
-  robot.respond /atc add application (\w+)/i, (msg) ->
+  robot.respond /application add (\w+)/i, (msg) ->
     applicationName = msg.match[1]
     applications = robot.brain.data.applications
     if applicationName not in applications
@@ -30,7 +30,7 @@ module.exports = (robot) ->
     else
       msg.reply "application #{applicationName} already exists"
 
-  robot.respond /atc remove application (\w+)/i, (msg) ->
+  robot.respond /application remove (\w+)/i, (msg) ->
     applicationName = msg.match[1]
     applications = robot.brain.data.applications
     if applicationName in applications
@@ -39,7 +39,7 @@ module.exports = (robot) ->
     else
       msg.reply "application #{applicationName} doesn't exist"
 
-  robot.respond /atc add environment (\w+) to (\w+)/i, (msg) ->
+  robot.respond /environment add (\w+) to (\w+)/i, (msg) ->
     environmentName = msg.match[1]
     applicationName = msg.match[2]
     currentApplications = robot.brain.data.applications
@@ -59,7 +59,7 @@ module.exports = (robot) ->
     else
       msg.reply "environment #{environmentName} already exists for #{applicationName}"
 
-  robot.respond /atc remove environment (\w+) from (\w+)/i, (msg) ->
+  robot.respond /environment remove (\w+) from (\w+)/i, (msg) ->
     environmentName = msg.match[1]
     applicationName = msg.match[2]
     currentApplications = robot.brain.data.applications
@@ -72,7 +72,7 @@ module.exports = (robot) ->
 
       msg.reply "environment #{environmentName} removed from #{applicationName}"
 
-  robot.respond /atc release (\w+)\/?(\S+)? to (\w+)/i, (msg) ->
+  robot.respond /release (\w+)\/?(\S+)? to (\w+)/i, (msg) ->
     applicationName = msg.match[1]
     branch = msg.match[2] || "master"
     environmentName = msg.match[3]
@@ -111,7 +111,7 @@ module.exports = (robot) ->
       else
         msg.send "sorry, @#{lock["owner"]} is releasing #{applicationName}/#{lock["branch"]} to #{environmentName}"
 
-  robot.respond /atc done releasing (\w+) to (\w+)/i, (msg) ->
+  robot.respond /done releasing (\w+) to (\w+)/i, (msg) ->
     applicationName = msg.match[1]
     environmentName = msg.match[2]
     currentApplications = robot.brain.data.applications
