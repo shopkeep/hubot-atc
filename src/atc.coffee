@@ -76,7 +76,7 @@ module.exports = (robot) ->
     applicationName = msg.match[1]
     branch = msg.match[2] || "master"
     environmentName = msg.match[3]
-    requester = msg.message.user.name
+    requester = msg.message.user.id
     currentApplications = robot.brain.data.applications
     currentEnvironments = robot.brain.data.environments[applicationName] || []
 
@@ -116,8 +116,8 @@ module.exports = (robot) ->
     environmentName = msg.match[2]
     currentApplications = robot.brain.data.applications
     currentEnvironments = robot.brain.data.environments[applicationName] || []
+    requester = msg.message.user.id
 
-    requester = msg.message.user.name
     lock = robot.brain.data.locks["#{applicationName}-#{environmentName}"]
 
     if applicationName not in currentApplications
