@@ -76,7 +76,7 @@ module.exports = (robot) ->
     applicationName = msg.match[1]
     branch = msg.match[2] || "master"
     environmentName = msg.match[3]
-    requester = msg.message.user.id
+    requester = msg.message.user.name
     currentApplications = robot.brain.data.applications
     currentEnvironments = robot.brain.data.environments[applicationName] || []
 
@@ -91,7 +91,7 @@ module.exports = (robot) ->
         robot.brain.data.locks["#{applicationName}-#{environmentName}"] = { "owner": requester, "branch": branch }
         msg.send "#{requester} is now releasing #{applicationName}/#{branch} to #{environmentName}"
       else
-        msg.send "sorry, @#{lock["owner"]} is releasing #{applicationName}/#{branch} to #{environmentName}"
+        msg.send "sorry, #{lock["owner"]} is releasing #{applicationName}/#{branch} to #{environmentName}"
 
   robot.hear /can I release (\w+) to (\w+)/i, (msg)->
     applicationName = msg.match[1]
@@ -109,14 +109,14 @@ module.exports = (robot) ->
       if !lock?
         msg.reply "yes, #{applicationName} is releasable to #{environmentName}"
       else
-        msg.send "sorry, @#{lock["owner"]} is releasing #{applicationName}/#{lock["branch"]} to #{environmentName}"
+        msg.send "sorry, #{lock["owner"]} is releasing #{applicationName}/#{lock["branch"]} to #{environmentName}"
 
   robot.respond /done releasing (\w+) to (\w+)/i, (msg) ->
     applicationName = msg.match[1]
     environmentName = msg.match[2]
     currentApplications = robot.brain.data.applications
     currentEnvironments = robot.brain.data.environments[applicationName] || []
-    requester = msg.message.user.id
+    requester = msg.message.user.name
 
     lock = robot.brain.data.locks["#{applicationName}-#{environmentName}"]
 

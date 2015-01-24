@@ -167,7 +167,7 @@ describe 'hubot-atc', ->
 
           it "tells you no", ->
             room.user.say "duncan", "hubot release hubot to staging"
-            expect(lastMessage(room)).to.match /sorry, @akatz is releasing hubot\/master to staging/
+            expect(lastMessage(room)).to.match /sorry, akatz is releasing hubot\/master to staging/
 
       context "without an environment", ->
         beforeEach ->
@@ -176,7 +176,6 @@ describe 'hubot-atc', ->
         it 'tells you to do a better job', ->
           room.user.say "duncan", "hubot release hubot to staging"
           expect(lastMessage(room)).to.match /environment staging doesn't exist for hubot/
-
     context "without an app", ->
       it 'tells you to do a better job', ->
         room.user.say "duncan", "hubot release hubot to staging"
@@ -242,7 +241,7 @@ describe 'hubot-atc', ->
 
           it "tells you no", ->
             room.user.say "akatz", "can I release hubot to staging"
-            expect(lastMessage(room)).to.match /sorry, @duncan is releasing hubot\/master to staging/
+            expect(lastMessage(room)).to.match /sorry, duncan is releasing hubot\/master to staging/
 
       context "without an environment", ->
         it 'tells you to do a better job', ->
