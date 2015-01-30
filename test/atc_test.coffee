@@ -49,6 +49,14 @@ describe 'hubot-atc', ->
           room.user.say "duncan", "hubot application add bar"
           expect(room.robot.brain.data.applications).to.eql ["foo", "bar"]
 
+        it 'handles hypens', ->
+          room.user.say "duncan", "hubot application add bar-baz"
+          expect(room.robot.brain.data.applications).to.eql ["foo", "bar-baz"]
+
+        it 'handles pluses', ->
+          room.user.say "duncan", "hubot application add bar+baz"
+          expect(room.robot.brain.data.applications).to.eql ["foo", "bar+baz"]
+
     describe "removing", ->
       context "when there are apps", ->
         beforeEach ->

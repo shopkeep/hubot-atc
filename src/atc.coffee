@@ -21,7 +21,7 @@ module.exports = (robot) ->
     robot.brain.data.environments ||= {}
     robot.brain.data.locks ||= {}
 
-  robot.respond /application add (\w+)/i, (msg) ->
+  robot.respond /application add ([^\/\s]+)/i, (msg) ->
     applicationName = msg.match[1]
     applications = robot.brain.data.applications
     if applicationName not in applications
@@ -30,7 +30,7 @@ module.exports = (robot) ->
     else
       msg.reply "application #{applicationName} already exists"
 
-  robot.respond /application remove (\w+)/i, (msg) ->
+  robot.respond /application remove ([^\/\s]+)/i, (msg) ->
     applicationName = msg.match[1]
     applications = robot.brain.data.applications
     if applicationName in applications
@@ -39,7 +39,7 @@ module.exports = (robot) ->
     else
       msg.reply "application #{applicationName} doesn't exist"
 
-  robot.respond /environment add (\w+) to (\w+)/i, (msg) ->
+  robot.respond /environment add (\w+) to ([^\/\s]+)/i, (msg) ->
     environmentName = msg.match[1]
     applicationName = msg.match[2]
     currentApplications = robot.brain.data.applications
@@ -59,7 +59,7 @@ module.exports = (robot) ->
     else
       msg.reply "environment #{environmentName} already exists for #{applicationName}"
 
-  robot.respond /environment remove (\w+) from (\w+)/i, (msg) ->
+  robot.respond /environment remove (\w+) from ([^\/\s]+)/i, (msg) ->
     environmentName = msg.match[1]
     applicationName = msg.match[2]
     currentApplications = robot.brain.data.applications
@@ -72,7 +72,7 @@ module.exports = (robot) ->
 
       msg.reply "environment #{environmentName} removed from #{applicationName}"
 
-  robot.respond /release (\w+)\/?(\S+)? to (\w+)/i, (msg) ->
+  robot.respond /release ([^\/\s]+)\/?(\S+)? to (\w+)/i, (msg) ->
     applicationName = msg.match[1]
     branch = msg.match[2] || "master"
     environmentName = msg.match[3]
@@ -93,7 +93,7 @@ module.exports = (robot) ->
       else
         msg.send "sorry, #{lock["owner"]} is releasing #{applicationName}/#{branch} to #{environmentName}"
 
-  robot.hear /can I release (\w+) to (\w+)/i, (msg)->
+  robot.hear /can I release ([^\/\s]+) to (\w+)/i, (msg)->
     applicationName = msg.match[1]
     environmentName = msg.match[2]
     currentApplications = robot.brain.data.applications
@@ -111,7 +111,7 @@ module.exports = (robot) ->
       else
         msg.send "sorry, #{lock["owner"]} is releasing #{applicationName}/#{lock["branch"]} to #{environmentName}"
 
-  robot.respond /done releasing (\w+) to (\w+)/i, (msg) ->
+  robot.respond /done releasing ([^\/\s]+) to (\w+)/i, (msg) ->
     applicationName = msg.match[1]
     environmentName = msg.match[2]
     currentApplications = robot.brain.data.applications
