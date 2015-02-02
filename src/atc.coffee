@@ -12,6 +12,8 @@
 #   hubot release hubot to staging
 #   can I release hubot to staging?
 
+Locks = require('./locks')
+
 filterElementFromArray = (element, array) ->
   array.filter (word) -> word isnt element
 
@@ -19,7 +21,7 @@ module.exports = (robot) ->
   robot.brain.on 'loaded', ->
     robot.brain.data.applications ||= []
     robot.brain.data.environments ||= {}
-    robot.brain.data.locks ||= {}
+    robot.brain.data.locks ||= new Locks()
 
   robot.respond /application add ([^\/\s]+)/i, (msg) ->
     applicationName = msg.match[1]
@@ -80,36 +82,35 @@ module.exports = (robot) ->
     currentApplications = robot.brain.data.applications
     currentEnvironments = robot.brain.data.environments[applicationName] || []
 
-    lock = robot.brain.data.locks["#{applicationName}-#{environmentName}"]
-
     if applicationName not in currentApplications
       msg.reply "application #{applicationName} doesn't exist"
     else if environmentName not in currentEnvironments
       msg.reply "environment #{environmentName} doesn't exist for #{applicationName}"
     else
-      if !lock?
-        robot.brain.data.locks["#{applicationName}-#{environmentName}"] = { "owner": requester, "branch": branch }
+      unless robot.brain.data.locks.hasLock(applicationName, environmentName)
+        lock = robot.brain.data.locks.add(applicationName, environmentName, requester, branch)
         msg.send "#{requester} is now releasing #{applicationName}/#{branch} to #{environmentName}"
       else
-        msg.send "sorry, #{lock["owner"]} is releasing #{applicationName}/#{lock["branch"]} to #{environmentName}"
+        lock = robot.brain.data.locks.lockFor(applicationName, environmentName)
+        msg.send "sorry, #{lock.overview()}"
 
   robot.hear /can I release ([^\/\s]+) to (\w+)/i, (msg)->
     applicationName = msg.match[1]
     environmentName = msg.match[2]
     currentApplications = robot.brain.data.applications
     currentEnvironments = robot.brain.data.environments[applicationName] || []
+    locks = robot.brain.data.locks
 
     if applicationName not in currentApplications
       msg.reply "application #{applicationName} doesn't exist"
     else if environmentName not in currentEnvironments
       msg.reply "environment #{environmentName} doesn't exist for #{applicationName}"
     else
-      lock = robot.brain.data.locks["#{applicationName}-#{environmentName}"]
-
-      if !lock?
+      unless locks.hasLock(applicationName, environmentName)
         msg.reply "yes, #{applicationName} is releasable to #{environmentName}"
       else
-        msg.send "sorry, #{lock["owner"]} is releasing #{applicationName}/#{lock["branch"]} to #{environmentName}"
+        lock = locks.lockFor(applicationName, environmentName)
+        msg.send "sorry, #{lock.overview()}"
 
   robot.respond /done releasing ([^\/\s]+) to (\w+)/i, (msg) ->
     applicationName = msg.match[1]
@@ -118,15 +119,16 @@ module.exports = (robot) ->
     currentEnvironments = robot.brain.data.environments[applicationName] || []
     requester = msg.message.user.name
 
-    lock = robot.brain.data.locks["#{applicationName}-#{environmentName}"]
+    locks = robot.brain.data.locks
+    lock = locks.lockFor(applicationName, environmentName)
 
     if applicationName not in currentApplications
       msg.reply "application #{applicationName} doesn't exist"
     else if environmentName not in currentEnvironments
       msg.reply "environment #{environmentName} doesn't exist for #{applicationName}"
     else
-      if lock["owner"] == requester
-        robot.brain.data.locks["#{applicationName}-#{environmentName}"] = null
+      if lock.owner == requester
+        locks.remove(applicationName, environmentName)
         msg.send "#{applicationName} #{environmentName} is free for releases"
       else
-        msg.send "sorry, #{lock["owner"]} is currently releasing #{applicationName}/#{lock["branch"]} to #{environmentName}"
+        msg.send "sorry, #{lock.overview()}"

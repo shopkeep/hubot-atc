@@ -223,7 +223,7 @@ describe 'hubot-atc', ->
 
             it 'allows you to release the lock', ->
               room.user.say "akatz", "hubot done releasing hubot to staging"
-              expect(lastMessage(room)).to.match /sorry, duncan is currently releasing hubot\/master to staging/
+              expect(lastMessage(room)).to.match /sorry, duncan is releasing hubot\/master to staging/
 
       context "without an environment", ->
         beforeEach ->
