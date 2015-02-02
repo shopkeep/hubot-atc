@@ -173,9 +173,15 @@ describe 'hubot-atc', ->
           beforeEach ->
             room.user.say "akatz", "hubot release hubot to staging"
 
-          it "tells you no", ->
-            room.user.say "duncan", "hubot release hubot to staging"
-            expect(lastMessage(room)).to.match /sorry, akatz is releasing hubot\/master to staging/
+          context "and releasing master", ->
+            it "tells you no", ->
+              room.user.say "duncan", "hubot release hubot to staging"
+              expect(lastMessage(room)).to.match /sorry, akatz is releasing hubot\/master to staging/
+
+          context "and releasing a branch", ->
+            it "tells you no", ->
+              room.user.say "duncan", "hubot release hubot/my_branch to staging"
+              expect(lastMessage(room)).to.match /sorry, akatz is releasing hubot\/master to staging/
 
       context "without an environment", ->
         beforeEach ->
