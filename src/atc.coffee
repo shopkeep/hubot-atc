@@ -23,6 +23,23 @@ module.exports = (robot) ->
     robot.brain.data.environments ||= {}
     robot.brain.data.locks ||= new Locks()
 
+  validateApplicationName = (msg, applicationName) ->
+    currentApplications = robot.brain.data.applications
+    return true if applicationName in currentApplications
+
+    msg.reply "application #{applicationName} doesn't exist"
+    false
+
+  validateEnvironmentName = (msg, applicationName, environmentName) ->
+    currentEnvironments = robot.brain.data.environments[applicationName] || []
+    return true if environmentName in currentEnvironments
+
+    msg.reply "environment #{environmentName} doesn't exist for #{applicationName}"
+    false
+
+  validateTarget = (msg, {applicationName, environmentName}) ->
+    validateApplicationName(msg, applicationName) && validateEnvironmentName(msg, applicationName, environmentName)
+
   robot.respond /application add ([^\/\s]+)/i, (msg) ->
     applicationName = msg.match[1]
     applications = robot.brain.data.applications
@@ -44,12 +61,9 @@ module.exports = (robot) ->
   robot.respond /environment add (\w+) to ([^\/\s]+)/i, (msg) ->
     environmentName = msg.match[1]
     applicationName = msg.match[2]
-    currentApplications = robot.brain.data.applications
     currentEnvironments = robot.brain.data.environments[applicationName] || []
 
-    if applicationName not in currentApplications
-      msg.reply "application #{applicationName} doesn't exist"
-      return
+    return unless validateApplicationName(msg, applicationName)
 
     if environmentName not in currentEnvironments
       if currentEnvironments.length > 0
@@ -64,7 +78,6 @@ module.exports = (robot) ->
   robot.respond /environment remove (\w+) from ([^\/\s]+)/i, (msg) ->
     environmentName = msg.match[1]
     applicationName = msg.match[2]
-    currentApplications = robot.brain.data.applications
     currentEnvironments = robot.brain.data.environments[applicationName] || []
 
     if environmentName not in currentEnvironments
@@ -75,60 +88,42 @@ module.exports = (robot) ->
       msg.reply "environment #{environmentName} removed from #{applicationName}"
 
   robot.respond /release ([^\/\s]+)\/?(\S+)? to (\w+)/i, (msg) ->
-    applicationName = msg.match[1]
-    branch = msg.match[2] || "master"
-    environmentName = msg.match[3]
-    requester = msg.message.user.name
-    currentApplications = robot.brain.data.applications
-    currentEnvironments = robot.brain.data.environments[applicationName] || []
+    target = { applicationName: msg.match[1], environmentName: msg.match[3] }
+    return unless validateTarget(msg, target)
 
-    if applicationName not in currentApplications
-      msg.reply "application #{applicationName} doesn't exist"
-    else if environmentName not in currentEnvironments
-      msg.reply "environment #{environmentName} doesn't exist for #{applicationName}"
+    branch = msg.match[2] || "master"
+    requester = msg.message.user.name
+    locks = robot.brain.data.locks
+
+    unless locks.hasLock(target)
+      lock = locks.add(target, requester, branch)
+      msg.send "#{requester} is now releasing #{target.applicationName}/#{branch} to #{target.environmentName}"
     else
-      unless robot.brain.data.locks.hasLock(applicationName, environmentName)
-        lock = robot.brain.data.locks.add(applicationName, environmentName, requester, branch)
-        msg.send "#{requester} is now releasing #{applicationName}/#{branch} to #{environmentName}"
-      else
-        lock = robot.brain.data.locks.lockFor(applicationName, environmentName)
-        msg.send "sorry, #{lock.overview()}"
+      lock = locks.lockFor(target)
+      msg.send "sorry, #{lock.overview()}"
 
   robot.hear /can I release ([^\/\s]+) to (\w+)/i, (msg)->
-    applicationName = msg.match[1]
-    environmentName = msg.match[2]
-    currentApplications = robot.brain.data.applications
-    currentEnvironments = robot.brain.data.environments[applicationName] || []
+    target = { applicationName: msg.match[1], environmentName: msg.match[2] }
+    return unless validateTarget(msg, target)
+
     locks = robot.brain.data.locks
 
-    if applicationName not in currentApplications
-      msg.reply "application #{applicationName} doesn't exist"
-    else if environmentName not in currentEnvironments
-      msg.reply "environment #{environmentName} doesn't exist for #{applicationName}"
+    unless locks.hasLock(target)
+      msg.reply "yes, #{target.applicationName} is releasable to #{target.environmentName}"
     else
-      unless locks.hasLock(applicationName, environmentName)
-        msg.reply "yes, #{applicationName} is releasable to #{environmentName}"
-      else
-        lock = locks.lockFor(applicationName, environmentName)
-        msg.send "sorry, #{lock.overview()}"
+      lock = locks.lockFor(target)
+      msg.send "sorry, #{lock.overview()}"
 
   robot.respond /done releasing ([^\/\s]+) to (\w+)/i, (msg) ->
-    applicationName = msg.match[1]
-    environmentName = msg.match[2]
-    currentApplications = robot.brain.data.applications
-    currentEnvironments = robot.brain.data.environments[applicationName] || []
+    target = { applicationName: msg.match[1], environmentName: msg.match[2] }
+    return unless validateTarget(msg, target)
+
     requester = msg.message.user.name
-
     locks = robot.brain.data.locks
-    lock = locks.lockFor(applicationName, environmentName)
+    lock = locks.lockFor(target)
 
-    if applicationName not in currentApplications
-      msg.reply "application #{applicationName} doesn't exist"
-    else if environmentName not in currentEnvironments
-      msg.reply "environment #{environmentName} doesn't exist for #{applicationName}"
+    if lock.owner == requester
+      locks.remove(target)
+      msg.send "#{target.applicationName} #{target.environmentName} is free for releases"
     else
-      if lock.owner == requester
-        locks.remove(applicationName, environmentName)
-        msg.send "#{applicationName} #{environmentName} is free for releases"
-      else
-        msg.send "sorry, #{lock.overview()}"
+      msg.send "sorry, #{lock.overview()}"
