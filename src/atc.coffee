@@ -91,7 +91,7 @@ module.exports = (robot) ->
         robot.brain.data.locks["#{applicationName}-#{environmentName}"] = { "owner": requester, "branch": branch }
         msg.send "#{requester} is now releasing #{applicationName}/#{branch} to #{environmentName}"
       else
-        msg.send "sorry, #{lock["owner"]} is releasing #{applicationName}/#{branch} to #{environmentName}"
+        msg.send "sorry, #{lock["owner"]} is releasing #{applicationName}/#{lock["branch"]} to #{environmentName}"
 
   robot.hear /can I release ([^\/\s]+) to (\w+)/i, (msg)->
     applicationName = msg.match[1]
