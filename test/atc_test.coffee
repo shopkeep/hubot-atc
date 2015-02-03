@@ -159,15 +159,27 @@ describe 'hubot-atc', ->
           context 'allows you to release', ->
             it 'defaults to master', ->
               room.user.say "akatz", "hubot release hubot to staging"
-              expect(lastMessage(room)).to.match /^akatz is now releasing hubot\/master to staging/
+              expect(lastMessage(room)).to.match /^akatz is releasing hubot\/master to staging/
+
+            it 'defaults to 60 minutes expiry', ->
+              room.user.say "akatz", "hubot release hubot to staging"
+              expect(lastMessage(room)).to.match /^akatz is releasing hubot\/master to staging for 60 minutes/
+
+            it 'allows you to specify an expiry in minutes', ->
+              room.user.say "akatz", "hubot release hubot to staging for 30 minutes"
+              expect(lastMessage(room)).to.match /^akatz is releasing hubot\/master to staging for 30 minutes/
+
+            it 'allows you to specify an expiry in hours', ->
+              room.user.say "akatz", "hubot release hubot to staging for 2 hours"
+              expect(lastMessage(room)).to.match /^akatz is releasing hubot\/master to staging for 120 minutes/
 
             it 'allows you to choose a branch', ->
               room.user.say "akatz", "hubot release hubot/test-this to staging"
-              expect(lastMessage(room)).to.match /^akatz is now releasing hubot\/test-this to staging/
+              expect(lastMessage(room)).to.match /^akatz is releasing hubot\/test-this to staging/
 
             it 'allows you to choose a commit', ->
               room.user.say "akatz", "hubot release hubot/1f1920a007f to staging"
-              expect(lastMessage(room)).to.match /^akatz is now releasing hubot\/1f1920a007f to staging/
+              expect(lastMessage(room)).to.match /^akatz is releasing hubot\/1f1920a007f to staging/
 
         beforeEach ->
           room.user.say "duncan", "hubot application add hubot"
@@ -178,30 +190,39 @@ describe 'hubot-atc', ->
 
         context "when there is a lock", ->
           beforeEach ->
-            room.user.say "akatz", "hubot release hubot to staging"
+            room.user.say "akatz", "hubot release hubot to staging for 25 minutes"
 
           context "and releasing master", ->
             context "and the lock is still valid" , ->
+              beforeEach ->
+                beforeExpiry = (1000 * 60) * 20
+                @clock.tick(beforeExpiry)
+
               it "tells you no", ->
                 room.user.say "duncan", "hubot release hubot to staging"
-                expect(lastMessage(room)).to.match /sorry, akatz is releasing hubot\/master to staging/
-
-              context "and the lock has expired" , ->
-                beforeEach ->
-                  one_hour = (1000 * 60) * 61
-                  @clock.tick(one_hour)
-
-                it_allows_you_to_release()
-
-          context "and releasing a branch", ->
-            it "tells you no", ->
-              room.user.say "duncan", "hubot release hubot/my_branch to staging"
-              expect(lastMessage(room)).to.match /sorry, akatz is releasing hubot\/master to staging/
+                expect(lastMessage(room)).to.match /sorry, akatz is releasing hubot\/master to staging for 5 minutes/
 
             context "and the lock has expired" , ->
               beforeEach ->
-                one_hour = (1000 * 60) * 61
-                @clock.tick(one_hour)
+                afterExpiry = (1000 * 60) * 26
+                @clock.tick(afterExpiry)
+
+              it_allows_you_to_release()
+
+          context "and releasing a branch", ->
+            context "and the lock is still valid" , ->
+              beforeEach ->
+                beforeExpiry = (1000 * 60) * 20
+                @clock.tick(beforeExpiry)
+
+              it "tells you no", ->
+                room.user.say "duncan", "hubot release hubot/my_branch to staging"
+                expect(lastMessage(room)).to.match /sorry, akatz is releasing hubot\/master to staging for 5 minutes/
+
+            context "and the lock has expired", ->
+              beforeEach ->
+                afterExpiry = (1000 * 60) * 26
+                @clock.tick(afterExpiry)
 
               it_allows_you_to_release()
 
@@ -237,7 +258,7 @@ describe 'hubot-atc', ->
               room.user.say "duncan", "hubot done releasing hubot to staging"
               room.user.say "akatz", "hubot release hubot to staging"
 
-              expect(lastMessage(room)).to.match /akatz is now releasing hubot\/master to staging/
+              expect(lastMessage(room)).to.match /akatz is releasing hubot\/master to staging/
 
           context 'and you are not the releaser', ->
             beforeEach ->

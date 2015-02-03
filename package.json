@@ -23,7 +23,6 @@
     "chai": "*",
     "hubot-test-helper": "akatz/hubot-test-helper",
     "mocha": "*",
-    "moment": "^2.9.0",
     "sinon": "*",
     "sinon-chai": "*",
     "supervisor": "*"

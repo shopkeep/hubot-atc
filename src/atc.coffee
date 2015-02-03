@@ -10,6 +10,7 @@
 #   hubot environment add staging to hubot
 #   hubot environment remove staging to hubot
 #   hubot release hubot to staging
+#   hubot release hubot to staging for 30 minutes
 #   can I release hubot to staging?
 
 Locks = require('./locks')
@@ -87,17 +88,19 @@ module.exports = (robot) ->
 
       msg.reply "environment #{environmentName} removed from #{applicationName}"
 
-  robot.respond /release ([^\/\s]+)\/?(\S+)? to (\w+)/i, (msg) ->
+  robot.respond /release ([^\/\s]+)\/?(\S+)? to (\w+)(?: for (\d+) (\w+))?/i, (msg) ->
     target = { applicationName: msg.match[1], environmentName: msg.match[3] }
     return unless validateTarget(msg, target)
 
     branch = msg.match[2] || "master"
+    expires = { value: msg.match[4], unit: msg.match[5] }
+
     requester = msg.message.user.name
     locks = robot.brain.data.locks
 
     unless locks.hasLock(target)
-      lock = locks.add(target, requester, branch)
-      msg.send "#{requester} is now releasing #{target.applicationName}/#{branch} to #{target.environmentName}"
+      lock = locks.add(target, requester, branch, expires)
+      msg.send lock.overview()
     else
       lock = locks.lockFor(target)
       msg.send "sorry, #{lock.overview()}"

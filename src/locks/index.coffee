@@ -5,8 +5,15 @@ class Locks
   keyFor = (applicationName, environmentName) ->
     "#{applicationName}-#{environmentName}"
 
+  defaultExpires = ->
+    moment().add(60, 'minutes').toDate()
+
+  expiryFor = (expires) ->
+    return defaultExpires() unless expires.value && expires.unit
+
+    moment().add(expires.value, expires.unit)
+
   constructor: ->
-    @defaultExpires = moment().add(60, 'minutes').toDate()
     @locks = {}
 
   lockFor: ({applicationName, environmentName}) ->
@@ -14,21 +21,22 @@ class Locks
     lock = @locks[key]
 
     if lock?.expired()
-      @remove(applicationName, environmentName)
+      @remove({ applicationName: applicationName, environmentName: environmentName})
       null
     else
       lock
 
-  add: ({applicationName, environmentName}, owner, branch) ->
+  add: ({applicationName, environmentName}, owner, branch, expires) ->
     key = keyFor(applicationName, environmentName)
-    expires = @defaultExpires
-    lock = new Lock(applicationName, environmentName, owner, branch, expires)
+    expiry = expiryFor(expires)
+    lock = new Lock(applicationName, environmentName, owner, branch, expiry)
     @locks[key] = lock
+
     lock
 
   remove: ({applicationName, environmentName}) ->
     key = keyFor(applicationName, environmentName)
-    @locks[key] = null
+    delete @locks[key]
 
   hasLock: (target) ->
     @lockFor(target)?
