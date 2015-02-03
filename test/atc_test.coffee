@@ -13,7 +13,11 @@ describe 'hubot-atc', ->
   room = null
 
   beforeEach ->
+    @clock = sinon.useFakeTimers()
     room = helper.createRoom()
+
+  afterEach ->
+    @clock.restore()
 
   lastMessage = (room) ->
     lastMessageIndex = room.messages.length - 1
@@ -151,11 +155,7 @@ describe 'hubot-atc', ->
   describe "release", ->
     context "with an app", ->
       context "and an environment", ->
-        beforeEach ->
-          room.user.say "duncan", "hubot application add hubot"
-          room.user.say "duncan", "hubot environment add staging to hubot"
-
-        context "when there is no lock", ->
+        it_allows_you_to_release = ->
           context 'allows you to release', ->
             it 'defaults to master', ->
               room.user.say "akatz", "hubot release hubot to staging"
@@ -169,19 +169,41 @@ describe 'hubot-atc', ->
               room.user.say "akatz", "hubot release hubot/1f1920a007f to staging"
               expect(lastMessage(room)).to.match /^akatz is now releasing hubot\/1f1920a007f to staging/
 
+        beforeEach ->
+          room.user.say "duncan", "hubot application add hubot"
+          room.user.say "duncan", "hubot environment add staging to hubot"
+
+        context "when there is no lock", ->
+          it_allows_you_to_release()
+
         context "when there is a lock", ->
           beforeEach ->
             room.user.say "akatz", "hubot release hubot to staging"
 
           context "and releasing master", ->
-            it "tells you no", ->
-              room.user.say "duncan", "hubot release hubot to staging"
-              expect(lastMessage(room)).to.match /sorry, akatz is releasing hubot\/master to staging/
+            context "and the lock is still valid" , ->
+              it "tells you no", ->
+                room.user.say "duncan", "hubot release hubot to staging"
+                expect(lastMessage(room)).to.match /sorry, akatz is releasing hubot\/master to staging/
+
+              context "and the lock has expired" , ->
+                beforeEach ->
+                  one_hour = (1000 * 60) * 61
+                  @clock.tick(one_hour)
+
+                it_allows_you_to_release()
 
           context "and releasing a branch", ->
             it "tells you no", ->
               room.user.say "duncan", "hubot release hubot/my_branch to staging"
               expect(lastMessage(room)).to.match /sorry, akatz is releasing hubot\/master to staging/
+
+            context "and the lock has expired" , ->
+              beforeEach ->
+                one_hour = (1000 * 60) * 61
+                @clock.tick(one_hour)
+
+              it_allows_you_to_release()
 
       context "without an environment", ->
         beforeEach ->
