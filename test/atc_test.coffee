@@ -165,6 +165,17 @@ describe 'hubot-atc', ->
               room.user.say "akatz", "hubot release hubot to staging"
               expect(lastMessage(room)).to.match /^akatz is releasing hubot\/master to staging for 60 minutes/
 
+            context 'invalid expiry', ->
+              expected_error_message = /akatz your given expiry was not recognised. Value must be greater than 0 and one of the following \[minutes, hours, days\]/
+
+              it 'validates invalid units', ->
+                room.user.say "akatz", "hubot release hubot to staging for 0 hours"
+                expect(lastMessage(room)).to.match expected_error_message
+
+              it 'validates invalid units', ->
+                room.user.say "akatz", "hubot release hubot to staging for 15 invalid_units"
+                expect(lastMessage(room)).to.match expected_error_message
+
             it 'allows you to specify an expiry in minutes', ->
               room.user.say "akatz", "hubot release hubot to staging for 30 minutes"
               expect(lastMessage(room)).to.match /^akatz is releasing hubot\/master to staging for 30 minutes/

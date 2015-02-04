@@ -41,6 +41,16 @@ module.exports = (robot) ->
   validateTarget = (msg, {applicationName, environmentName}) ->
     validateApplicationName(msg, applicationName) && validateEnvironmentName(msg, applicationName, environmentName)
 
+  validateExpires = (msg, {value, unit}) ->
+    return true unless value && unit
+
+    allowedUnits = ['minutes', 'hours', 'days']
+    return true if Number(value) > 0 && unit in allowedUnits
+
+    msg.reply "your given expiry was not recognised. Value must be greater than 0 and one of the following [#{allowedUnits.join(', ')}]"
+    false
+
+
   robot.respond /application add ([^\/\s]+)/i, (msg) ->
     applicationName = msg.match[1]
     applications = robot.brain.data.applications
@@ -94,6 +104,7 @@ module.exports = (robot) ->
 
     branch = msg.match[2] || "master"
     expires = { value: msg.match[4], unit: msg.match[5] }
+    return unless validateExpires(msg, expires)
 
     requester = msg.message.user.name
     locks = robot.brain.data.locks
