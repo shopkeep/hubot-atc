@@ -1,6 +1,6 @@
 # Hubot ATC
 
-[![Build Status](https://magnum.travis-ci.com/shopkeep/hubot-atc.svg?token=k5XqB7xVsuXDBZsrELpB&branch=master)](https://magnum.travis-ci.com/shopkeep/hubot-atc)
+[![Build Status](https://travis-ci.org/shopkeep/hubot-atc.svg?branch=master)](https://travis-ci.org/shopkeep/hubot-atc)
 
 ## Usage
 
