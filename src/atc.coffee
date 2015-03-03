@@ -22,7 +22,7 @@ module.exports = (robot) ->
   robot.brain.on 'loaded', ->
     robot.brain.data.applications ||= []
     robot.brain.data.environments ||= {}
-    robot.brain.data.locks ||= new Locks()
+    robot.brain.data.locks = new Locks()
 
   validateApplicationName = (msg, applicationName) ->
     currentApplications = robot.brain.data.applications
