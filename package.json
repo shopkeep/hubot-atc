@@ -1,7 +1,7 @@
 {
   "name": "hubot-atc",
   "description": "An air traffic controller that powers your releases",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "author": "ShopKeep<developers@shopkeep.com>",
   "license": "MIT",
   "keywords": [
