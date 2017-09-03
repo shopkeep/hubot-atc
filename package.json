@@ -16,8 +16,7 @@
     "url": "https://github.com/shopkeep/hubot-atc/issues"
   },
   "dependencies": {
-    "coffee-script": "~1.6",
-    "moment": "^2.9.0"
+    "coffee-script": "~1.6"
   },
   "devDependencies": {
     "chai": "^4.1.1",
