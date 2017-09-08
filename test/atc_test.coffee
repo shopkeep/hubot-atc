@@ -34,12 +34,11 @@ describe 'hubot-atc', ->
   addApplicationEnvironment = (room, applicationName, environmentName) ->
     room.robot.brain.data.environments[applicationName].push(environmentName);
 
-  deployApplication = (room, userName, applicationName, environmentName, timePeriod = null, timeUnit = null) ->
+  deployApplication = (room, userName, applicationName, environmentName) ->
     locks = new Locks()
     deploymentDetails = { applicationName: applicationName, environmentName: environmentName }
-    lockDuration = {value: timePeriod, unit: timeUnit}
 
-    locks.add(deploymentDetails, userName, "master", lockDuration)
+    locks.add(deploymentDetails, userName, "master")
 
     room.robot.brain.data.locks = locks
 
@@ -175,35 +174,18 @@ describe 'hubot-atc', ->
 
   describe "release", ->
     context "with an app", ->
+      beforeEach ->
+        addApplication(@room, "hubot")
+
       context "and an environment", ->
-        it_allows_you_to_release = ->
+        beforeEach ->
+          addApplicationEnvironment(@room, "hubot", "staging")
+
+        context "when there is no lock", ->
           context 'allows you to release', ->
             it 'defaults to master', ->
               @room.user.say("akatz", "hubot release hubot to staging").then =>
                 expect(lastMessage(@room)).to.match /^akatz is releasing hubot\/master to staging/
-
-            it 'defaults to 60 minutes expiry', ->
-              @room.user.say("akatz", "hubot release hubot to staging").then =>
-                expect(lastMessage(@room)).to.match /^akatz is releasing hubot\/master to staging for 60 minutes/
-
-            context 'invalid expiry', ->
-              expected_error_message = /akatz your given expiry was not recognised. Value must be greater than 0 and one of the following \[minutes, hours, days\]/
-
-              it 'validates invalid units', ->
-                @room.user.say("akatz", "hubot release hubot to staging for 0 hours").then =>
-                  expect(lastMessage(@room)).to.match expected_error_message
-
-              it 'validates invalid units', ->
-                @room.user.say("akatz", "hubot release hubot to staging for 15 invalid_units").then =>
-                  expect(lastMessage(@room)).to.match expected_error_message
-
-            it 'allows you to specify an expiry in minutes', ->
-              @room.user.say("akatz", "hubot release hubot to staging for 30 minutes").then =>
-                expect(lastMessage(@room)).to.match /^akatz is releasing hubot\/master to staging for 30 minutes/
-
-            it 'allows you to specify an expiry in hours', ->
-              @room.user.say("akatz", "hubot release hubot to staging for 2 hours").then =>
-                expect(lastMessage(@room)).to.match /^akatz is releasing hubot\/master to staging for 120 minutes/
 
             it 'allows you to choose a branch', ->
               @room.user.say("akatz", "hubot release hubot/test-this to staging").then =>
@@ -213,55 +195,21 @@ describe 'hubot-atc', ->
               @room.user.say("akatz", "hubot release hubot/1f1920a007f to staging").then =>
                 expect(lastMessage(@room)).to.match /^akatz is releasing hubot\/1f1920a007f to staging/
 
-        beforeEach ->
-          addApplication(@room, "hubot")
-          addApplicationEnvironment(@room, "hubot", "staging")
-
-        context "when there is no lock", ->
-          it_allows_you_to_release()
-
         context "when there is a lock", ->
           beforeEach ->
-            deployApplication(@room, "akatz", "hubot", "staging", "25", "minutes")
+            deployApplication(@room, "akatz", "hubot", "staging")
 
           context "and releasing master", ->
-            context "and the lock is still valid" , ->
-              beforeEach ->
-                beforeExpiry = (1000 * 60) * 20
-                @clock.tick(beforeExpiry)
-
-              it "tells you no", ->
-                @room.user.say("duncan", "hubot release hubot to staging").then =>
-                  expect(lastMessage(@room)).to.match /sorry, akatz is releasing hubot\/master to staging for 5 minutes/
-
-            context "and the lock has expired" , ->
-              beforeEach ->
-                afterExpiry = (1000 * 60) * 26
-                @clock.tick(afterExpiry)
-
-              it_allows_you_to_release()
+            it "tells you no", ->
+              @room.user.say("duncan", "hubot release hubot to staging").then =>
+                expect(lastMessage(@room)).to.match /sorry, akatz is releasing hubot\/master to staging/
 
           context "and releasing a branch", ->
-            context "and the lock is still valid" , ->
-              beforeEach ->
-                beforeExpiry = (1000 * 60) * 20
-                @clock.tick(beforeExpiry)
-
-              it "tells you no", ->
-                @room.user.say("duncan", "hubot release hubot/my_branch to staging").then =>
-                  expect(lastMessage(@room)).to.match /sorry, akatz is releasing hubot\/master to staging for 5 minutes/
-
-            context "and the lock has expired", ->
-              beforeEach ->
-                afterExpiry = (1000 * 60) * 26
-                @clock.tick(afterExpiry)
-
-              it_allows_you_to_release()
+            it "tells you no", ->
+              @room.user.say("duncan", "hubot release hubot/my_branch to staging").then =>
+                expect(lastMessage(@room)).to.match /sorry, akatz is releasing hubot\/master to staging/
 
       context "without an environment", ->
-        beforeEach ->
-          addApplication(@room, "hubot")
-
         it 'tells you to do a better job', ->
           @room.user.say("duncan", "hubot release hubot to staging").then =>
             expect(lastMessage(@room)).to.match /environment staging doesn't exist for hubot/

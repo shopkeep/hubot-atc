@@ -41,16 +41,6 @@ module.exports = (robot) ->
   validateTarget = (msg, {applicationName, environmentName}) ->
     validateApplicationName(msg, applicationName) && validateEnvironmentName(msg, applicationName, environmentName)
 
-  validateExpires = (msg, {value, unit}) ->
-    return true unless value && unit
-
-    allowedUnits = ['minutes', 'hours', 'days']
-    return true if Number(value) > 0 && unit in allowedUnits
-
-    msg.reply "your given expiry was not recognised. Value must be greater than 0 and one of the following [#{allowedUnits.join(', ')}]"
-    false
-
-
   robot.respond /application add ([^\/\s]+)/i, (msg) ->
     applicationName = msg.match[1]
     applications = robot.brain.data.applications
@@ -98,19 +88,17 @@ module.exports = (robot) ->
 
       msg.reply "environment #{environmentName} removed from #{applicationName}"
 
-  robot.respond /release ([^\/\s]+)\/?(\S+)? to (\w+)(?: for (\d+) (\w+))?/i, (msg) ->
+  robot.respond /release ([^\/\s]+)\/?(\S+)? to (\w+)/i, (msg) ->
     target = { applicationName: msg.match[1], environmentName: msg.match[3] }
     return unless validateTarget(msg, target)
 
     branch = msg.match[2] || "master"
-    expires = { value: msg.match[4], unit: msg.match[5] }
-    return unless validateExpires(msg, expires)
 
     requester = msg.message.user.name
     locks = robot.brain.data.locks
 
     unless locks.hasLock(target)
-      lock = locks.add(target, requester, branch, expires)
+      lock = locks.add(target, requester, branch)
       msg.send lock.overview()
     else
       lock = locks.lockFor(target)

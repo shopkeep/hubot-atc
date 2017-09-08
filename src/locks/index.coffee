@@ -1,17 +1,8 @@
 Lock = require('./lock.coffee')
-moment = require('moment')
 
 class Locks
   keyFor = (applicationName, environmentName) ->
     "#{applicationName}-#{environmentName}"
-
-  defaultExpires = ->
-    moment().add(60, 'minutes').toDate()
-
-  expiryFor = (expires) ->
-    return defaultExpires() unless expires.value && expires.unit
-
-    moment().add(expires.value, expires.unit)
 
   constructor: ->
     @locks = {}
@@ -19,17 +10,11 @@ class Locks
   lockFor: ({applicationName, environmentName}) ->
     key = keyFor(applicationName, environmentName)
     lock = @locks[key]
+    lock
 
-    if lock?.expired()
-      @remove({ applicationName: applicationName, environmentName: environmentName})
-      null
-    else
-      lock
-
-  add: ({applicationName, environmentName}, owner, branch, expires) ->
+  add: ({applicationName, environmentName}, owner, branch) ->
     key = keyFor(applicationName, environmentName)
-    expiry = expiryFor(expires)
-    lock = new Lock(applicationName, environmentName, owner, branch, expiry)
+    lock = new Lock(applicationName, environmentName, owner, branch)
     @locks[key] = lock
 
     lock
