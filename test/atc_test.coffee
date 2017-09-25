@@ -43,6 +43,21 @@ describe 'hubot-atc', ->
     room.robot.brain.data.locks = locks
 
   describe "applications", ->
+    describe "listing", ->
+      context "when there are none", ->
+        it 'responds with the proper message', ->
+          @room.user.say("duncan", "hubot application list").then =>
+            expect(lastMessage(@room)).to.match /No applications exist/
+
+      context "when there are already apps", ->
+        beforeEach ->
+          addApplication(@room, "foo")
+          addApplication(@room, "bar")
+
+        it 'responds with the proper message', ->
+          @room.user.say("duncan", "hubot application list").then =>
+            expect(lastMessage(@room)).to.match /applications available: bar, foo/
+
     describe "adding", ->
       context "when there are none", ->
         it 'adds the application', ->
