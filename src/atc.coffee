@@ -44,7 +44,8 @@ module.exports = (robot) ->
   robot.respond /application list/i, (msg) ->
     applications = robot.brain.data.applications
     if applications.length > 0
-      msg.reply "applications available: #{applications.sort().join(', ')}"
+      sorted_applications = applications.sort().join(', ')
+      msg.reply "applications available: #{sorted_applications}"
     else
       msg.reply "No applications exist"
 

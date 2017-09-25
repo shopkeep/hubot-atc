@@ -56,7 +56,10 @@ describe 'hubot-atc', ->
 
         it 'responds with the proper message', ->
           @room.user.say("duncan", "hubot application list").then =>
-            expect(lastMessage(@room)).to.match /applications available: bar, foo/
+            expect(@room.messages).to.eql [
+              ['duncan', 'hubot application list'],
+              ['hubot', '@duncan applications available: bar, foo']
+            ]
 
     describe "adding", ->
       context "when there are none", ->
