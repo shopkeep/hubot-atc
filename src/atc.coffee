@@ -41,6 +41,14 @@ module.exports = (robot) ->
   validateTarget = (msg, {applicationName, environmentName}) ->
     validateApplicationName(msg, applicationName) && validateEnvironmentName(msg, applicationName, environmentName)
 
+  robot.respond /application list/i, (msg) ->
+    applications = robot.brain.data.applications
+    if applications.length > 0
+      sorted_applications = applications.sort().join(', ')
+      msg.reply "applications available: #{sorted_applications}"
+    else
+      msg.reply "No applications exist"
+
   robot.respond /application add ([^\/\s]+)/i, (msg) ->
     applicationName = msg.match[1]
     applications = robot.brain.data.applications
